@@ -1,0 +1,17 @@
+# Core dependencies
+streamlit>=1.28.0
+neo4j>=5.14.0
+pyvis>=0.3.2
+mysql-connector-python>=8.2.0
+python-dotenv>=1.0.0
+pandas>=2.0.0
+pydantic-settings>=2.0.0
+
+# Export capabilities
+html2image>=2.0.0
+reportlab>=4.0.0
+Pillow>=10.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0

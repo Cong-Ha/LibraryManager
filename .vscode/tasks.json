@@ -1,0 +1,120 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Docker: Start Services",
+            "type": "shell",
+            "command": "docker-compose up -d",
+            "options": {
+                "cwd": "${workspaceFolder}/library_graph_viz"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "Docker: Stop Services",
+            "type": "shell",
+            "command": "docker-compose down",
+            "options": {
+                "cwd": "${workspaceFolder}/library_graph_viz"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Docker: Restart Services",
+            "type": "shell",
+            "command": "docker-compose restart",
+            "options": {
+                "cwd": "${workspaceFolder}/library_graph_viz"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Docker: View Logs",
+            "type": "shell",
+            "command": "docker-compose logs -f",
+            "options": {
+                "cwd": "${workspaceFolder}/library_graph_viz"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Docker: Status",
+            "type": "shell",
+            "command": "docker-compose ps",
+            "options": {
+                "cwd": "${workspaceFolder}/library_graph_viz"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Python: Install Dependencies",
+            "type": "shell",
+            "command": "${workspaceFolder}/library_graph_viz/venv/bin/pip install -r requirements.txt",
+            "options": {
+                "cwd": "${workspaceFolder}/library_graph_viz"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Python: Run Tests",
+            "type": "shell",
+            "command": "${workspaceFolder}/library_graph_viz/venv/bin/pytest",
+            "options": {
+                "cwd": "${workspaceFolder}/library_graph_viz"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/library_graph_viz"
+            }
+        },
+        {
+            "label": "Python: Run Tests with Coverage",
+            "type": "shell",
+            "command": "${workspaceFolder}/library_graph_viz/venv/bin/pytest --cov=. --cov-report=html",
+            "options": {
+                "cwd": "${workspaceFolder}/library_graph_viz"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/library_graph_viz"
+            }
+        }
+    ]
+}
+

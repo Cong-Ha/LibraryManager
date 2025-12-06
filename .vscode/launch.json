@@ -1,0 +1,127 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Streamlit: Run App",
+            "type": "python",
+            "request": "launch",
+            "module": "streamlit",
+            "args": [
+                "run",
+                "library_graph_viz/app/main.py",
+                "--server.headless=true"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/library_graph_viz",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/library_graph_viz"
+            },
+            "python": "${workspaceFolder}/library_graph_viz/venv/bin/python"
+        },
+        {
+            "name": "Streamlit: Debug App",
+            "type": "python",
+            "request": "launch",
+            "module": "streamlit",
+            "args": [
+                "run",
+                "library_graph_viz/app/main.py",
+                "--server.headless=true"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/library_graph_viz",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/library_graph_viz"
+            },
+            "python": "${workspaceFolder}/library_graph_viz/venv/bin/python"
+        },
+        {
+            "name": "ETL: Run Pipeline",
+            "type": "python",
+            "request": "launch",
+            "module": "etl.etl_pipeline",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/library_graph_viz",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/library_graph_viz"
+            },
+            "python": "${workspaceFolder}/library_graph_viz/venv/bin/python"
+        },
+        {
+            "name": "ETL: Run Pipeline (Verbose)",
+            "type": "python",
+            "request": "launch",
+            "module": "etl.etl_pipeline",
+            "args": [
+                "--verbose"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/library_graph_viz",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/library_graph_viz"
+            },
+            "python": "${workspaceFolder}/library_graph_viz/venv/bin/python"
+        },
+        {
+            "name": "ETL: Run Pipeline (No Clear)",
+            "type": "python",
+            "request": "launch",
+            "module": "etl.etl_pipeline",
+            "args": [
+                "--no-clear"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/library_graph_viz",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/library_graph_viz"
+            },
+            "python": "${workspaceFolder}/library_graph_viz/venv/bin/python"
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/library_graph_viz"
+            },
+            "python": "${workspaceFolder}/library_graph_viz/venv/bin/python"
+        },
+        {
+            "name": "Python: Debug Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "stopOnEntry": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/library_graph_viz"
+            },
+            "python": "${workspaceFolder}/library_graph_viz/venv/bin/python"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Full Setup: ETL + Streamlit",
+            "configurations": [
+                "ETL: Run Pipeline",
+                "Streamlit: Run App"
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "1",
+                "order": 1
+            },
+            "stopAll": true
+        }
+    ]
+}
+
