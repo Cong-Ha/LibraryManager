@@ -7,6 +7,10 @@ from . import category_explorer
 from . import staff_activity
 from . import custom_query
 from . import analytics
+from . import erd_oltp
+from . import erd_olap
+from . import crud_examples
+from . import olap_analytics
 
 __all__ = [
     "full_network",
@@ -16,4 +20,8 @@ __all__ = [
     "staff_activity",
     "custom_query",
     "analytics",
+    "erd_oltp",
+    "erd_olap",
+    "crud_examples",
+    "olap_analytics",
 ]

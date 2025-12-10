@@ -19,7 +19,8 @@ class Settings(BaseSettings):
     # MySQL Configuration
     mysql_host: str = "localhost"
     mysql_port: int = 3306
-    mysql_database: str = "library_oltp"
+    mysql_database: str = "library"
+    mysql_olap_database: str = "library_olap"
     mysql_user: str = "root"
     mysql_password: str = "librarypass123"
 

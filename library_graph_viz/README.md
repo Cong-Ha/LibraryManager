@@ -1,51 +1,69 @@
 # Library Graph Visualization
 
-A graph visualization layer for a Library Management System using Neo4j, PyVis, and Streamlit. This application provides interactive network visualizations to explore relationships between library entities including books, authors, members, categories, staff, and loans.
+A comprehensive graph visualization and analytics platform for a Library Management System using Neo4j, PyVis, MySQL, and Streamlit. This application provides interactive network visualizations, CRUD demonstrations, ERD diagrams, and OLAP analytics to explore relationships between library entities including books, authors, members, categories, staff, and loans.
 
 ## Features
 
-- **Interactive Graph Visualizations**: Explore library data through interactive network graphs
-- **Multiple Views**:
-  - Full Library Network - Overview of all entities and relationships
-  - Books & Authors - Author-book relationships visualization
-  - Member Borrowing History - Individual member loan chains
-  - Category Explorer - Books and authors by category
-  - Staff Activity - Staff member loan processing activity
-  - Custom Cypher Query - Execute custom Neo4j queries
-  - Analytics & Recommendations - Book recommendations and member connections
+### Graph Visualizations (Neo4j + PyVis)
+- **Full Library Network** - Overview of all entities and relationships
+- **Books & Authors** - Author-book relationships visualization
+- **Member Borrowing History** - Individual member loan chains
+- **Category Explorer** - Books and authors by category
+- **Staff Activity** - Staff member loan processing activity
+- **Custom Cypher Query** - Execute custom Neo4j queries
+- **Analytics & Recommendations** - Book recommendations and member connections
 
+### Database Schema Diagrams
+- **ERD: OLTP Schema** - Interactive diagram of the normalized 9-table schema
+- **ERD: OLAP Star Schema** - Star schema visualization with fact and dimension tables
+
+### SQL Demonstrations
+- **CRUD Examples** - Interactive CREATE, READ, UPDATE, DELETE demonstrations with live query execution
+- **OLAP Analytics** - 7 analytical queries against the star schema with charts and CSV export
+
+### Additional Features
 - **Data Export**: Export data to CSV, PNG, SVG, and PDF formats
 - **Real-time Sync**: Sync data from MySQL to Neo4j with one click
 - **ETL Pipeline**: Automated data migration from MySQL OLTP to Neo4j graph database
+- **Large Dataset Generator**: Faker-based script to generate realistic sample data
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Streamlit App                          │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
-│  │  CRUD Operations │  │  OLAP Reports   │  │ Graph View  │ │
-│  │  (MySQL)         │  │  (MySQL Star)   │  │ (Neo4j)     │ │
-│  └────────┬─────────┘  └────────┬────────┘  └──────┬──────┘ │
-└───────────┼─────────────────────┼──────────────────┼────────┘
-            │                     │                  │
-            ▼                     ▼                  ▼
-      ┌──────────┐          ┌──────────┐       ┌──────────┐
-      │  MySQL   │          │  MySQL   │       │  Neo4j   │
-      │  OLTP    │───ETL───▶│  OLAP    │       │  Graph   │
-      └──────────┘          └──────────┘       └──────────┘
-            │                                        ▲
-            └────────────── ETL ─────────────────────┘
++-------------------------------------------------------------+
+|                      Streamlit App                          |
+|  +---------------+  +---------------+  +-----------------+  |
+|  | CRUD Examples |  | OLAP Analytics|  | Graph Views     |  |
+|  | (MySQL OLTP)  |  | (MySQL OLAP)  |  | (Neo4j + PyVis) |  |
+|  +-------+-------+  +-------+-------+  +--------+--------+  |
+|          |                  |                   |           |
+|  +-------+-------+  +-------+-------+  +--------+--------+  |
+|  | ERD: OLTP     |  | ERD: OLAP     |  | Custom Cypher   |  |
+|  | (PyVis)       |  | (PyVis)       |  | Queries         |  |
+|  +---------------+  +---------------+  +-----------------+  |
++-------------------------------------------------------------+
+           |                  |                   |
+           v                  v                   v
+      +----------+       +----------+       +----------+
+      |  MySQL   |       |  MySQL   |       |  Neo4j   |
+      |  OLTP    |--ETL->|  OLAP    |       |  Graph   |
+      | (library)|       |(library_ |       |          |
+      |          |       |  olap)   |       |          |
+      +----------+       +----------+       +----------+
+           |                                      ^
+           +----------------- ETL ----------------+
 ```
 
 ## Technology Stack
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| Graph Database | Neo4j | Store and query graph relationships |
-| Visualization | PyVis | Interactive network graphs |
+| Graph Database | Neo4j 5.x | Store and query graph relationships |
+| Visualization | PyVis | Interactive network graphs & ERD diagrams |
 | Front-end | Streamlit | Web application framework |
-| OLTP Database | MySQL | Transactional database |
+| OLTP Database | MySQL 8.x | Transactional database (normalized) |
+| OLAP Database | MySQL 8.x | Analytical database (star schema) |
+| Data Generation | Faker | Realistic sample data generation |
 | Language | Python 3.10+ | Application development |
 | Containerization | Docker | Database deployment |
 
@@ -99,16 +117,19 @@ docker-compose ps
 source venv/bin/activate
 
 # Populate Neo4j with data from MySQL
-python -m etl.etl_pipeline
+PYTHONPATH=$(pwd) python -m etl.etl_pipeline
 
 # With verbose logging
-python -m etl.etl_pipeline --verbose
+PYTHONPATH=$(pwd) python -m etl.etl_pipeline --verbose
 ```
 
 ### 4. Start Application
 
 ```bash
 # Run Streamlit app (PYTHONPATH is required for module imports)
+PYTHONPATH=$(pwd) streamlit run app/main.py
+
+# Or with headless mode (no browser auto-open)
 PYTHONPATH=$(pwd) streamlit run app/main.py --server.headless=true
 
 # Access at http://localhost:8501
@@ -122,6 +143,9 @@ pkill -f streamlit
 
 # Stop and remove Docker containers
 docker-compose down
+
+# Full reset (removes all data volumes)
+docker-compose down -v
 ```
 
 ## Project Structure
@@ -135,25 +159,26 @@ library_graph_viz/
 ├── README.md
 │
 ├── config/
-│   └── settings.py              # Configuration management
+│   └── settings.py              # Configuration management (OLTP + OLAP)
 │
 ├── scripts/                     # MySQL initialization scripts (run in order)
 │   ├── 01_create_tables.sql     # OLTP schema (member, book, author, etc.)
-│   ├── 02_insert_data.sql       # Sample data (6 members, 10 books, etc.)
+│   ├── 02_insert_data.sql       # Large sample data (200 members, 500 books)
 │   ├── 03_roles_users.sql       # Database roles and users
 │   ├── 04_olap_create_tables.sql # OLAP star schema (dimensions & facts)
-│   └── 05_olap_etl.sql          # OLAP ETL (populates star schema)
+│   ├── 05_olap_etl.sql          # OLAP ETL (populates star schema)
+│   └── generate_sample_data.py  # Faker-based data generator script
 │
 ├── etl/
 │   ├── __init__.py
-│   ├── mysql_connector.py       # MySQL connection utilities
+│   ├── mysql_connector.py       # MySQL connection (supports OLTP + OLAP)
 │   ├── neo4j_connector.py       # Neo4j connection utilities
 │   └── etl_pipeline.py          # Main ETL script (MySQL → Neo4j)
 │
 ├── app/
 │   ├── main.py                  # Streamlit entry point
 │   ├── components/
-│   │   ├── graph_builder.py     # PyVis graph construction
+│   │   ├── graph_builder.py     # PyVis graph construction + ERD styles
 │   │   └── sidebar.py           # Sidebar navigation
 │   └── views/
 │       ├── full_network.py      # Full library network view
@@ -162,7 +187,11 @@ library_graph_viz/
 │       ├── category_explorer.py # Category exploration
 │       ├── staff_activity.py    # Staff activity view
 │       ├── custom_query.py      # Custom Cypher queries
-│       └── analytics.py         # Analytics & recommendations
+│       ├── analytics.py         # Analytics & recommendations
+│       ├── erd_oltp.py          # ERD: Normalized schema diagram
+│       ├── erd_olap.py          # ERD: Star schema diagram
+│       ├── crud_examples.py     # CRUD operations examples
+│       └── olap_analytics.py    # OLAP analytical queries
 │
 ├── utils/
 │   └── export.py                # Export utilities
@@ -176,19 +205,31 @@ library_graph_viz/
 
 ## Database Schema
 
-### MySQL OLTP Tables
+### MySQL OLTP Tables (Normalized - 3NF)
 
 | Table | Description | Records |
 |-------|-------------|---------|
-| `member` | Library patrons | 6 |
-| `author` | Book authors | 8 |
+| `member` | Library patrons | 200 |
+| `author` | Book authors | 100 |
 | `category` | Book genres/classifications | 6 |
-| `staff` | Library employees | 5 |
-| `book` | Book catalog | 10 |
-| `book_author` | Book-Author relationships (M:N) | 10 |
-| `book_category` | Book-Category relationships (M:N) | 17 |
-| `loan` | Checkout transactions | 8 |
-| `fine` | Overdue penalties | 4 |
+| `staff` | Library employees | 20 |
+| `book` | Book catalog | 500 |
+| `book_author` | Book-Author relationships (M:N) | ~660 |
+| `book_category` | Book-Category relationships (M:N) | ~890 |
+| `loan` | Checkout transactions | 2,000 |
+| `fine` | Overdue penalties | ~1,200 |
+
+### MySQL OLAP Tables (Star Schema)
+
+| Table | Type | Description |
+|-------|------|-------------|
+| `fact_loan` | Fact | Central fact table with loan measures |
+| `dim_date` | Dimension | Date dimension (2020-2030) |
+| `dim_member` | Dimension | Member attributes |
+| `dim_book` | Dimension | Book attributes with denormalized authors |
+| `dim_staff` | Dimension | Staff attributes |
+| `dim_category` | Dimension | Category attributes |
+| `bridge_book_category` | Bridge | M:N book-category with weighting |
 
 ### Neo4j Graph Schema
 
@@ -209,6 +250,62 @@ library_graph_viz/
 - `(Loan)-[:PROCESSED_BY]->(Staff)`
 - `(Loan)-[:HAS_FINE]->(Fine)`
 
+## Application Views
+
+### Graph Views (Neo4j)
+
+| View | Description |
+|------|-------------|
+| Full Library Network | Interactive graph with node type selection and connectivity-aware sampling |
+| Books & Authors | Explore author-book connections |
+| Member Borrowing History | Track individual member loan patterns |
+| Category Explorer | Browse books by genre/category |
+| Staff Activity | Analyze staff loan processing |
+| Custom Cypher Query | Run arbitrary Neo4j queries |
+| Analytics & Recommendations | Book recommendations based on borrowing patterns |
+
+#### Full Library Network - Smart Sampling
+
+The Full Library Network view uses **connectivity-aware sampling** to ensure meaningful visualizations:
+
+**Node Type Selection:**
+- Checkboxes for each of the 7 node types (all enabled by default)
+- Real-time counts displayed next to each type
+- Toggle visibility of Categories, Staff, Authors, Members, Books, Loans, and Fines
+
+**Sampling Strategy:**
+- **Small types** (Category, Staff, Author): Always shown completely when selected
+- **Large types** (Member, Book, Loan, Fine): Sampled using connectivity-aware approach
+
+**How Connectivity-Aware Sampling Works:**
+```
+Loan (hub) ───┬──► Book (via CONTAINS)
+              ├──► Member (via BORROWED)
+              ├──► Staff (via PROCESSED_BY)
+              └──► Fine (via HAS_FINE)
+```
+
+Instead of sampling each node type independently (which can result in disconnected nodes), the view:
+1. Samples a set of Loans as the "hub"
+2. Automatically includes all connected nodes (Members, Books, Staff, Fines)
+3. Guarantees every relationship is visible in the graph
+
+This ensures you see complete transaction chains rather than isolated nodes with missing relationships.
+
+### Schema Diagrams (PyVis)
+
+| View | Description |
+|------|-------------|
+| ERD: OLTP Schema | 9-table normalized schema with FK relationships |
+| ERD: OLAP Star Schema | Fact + dimension tables with star layout |
+
+### SQL Views (MySQL)
+
+| View | Description |
+|------|-------------|
+| CRUD Examples | Interactive SQL demonstrations (SELECT queries executable) |
+| OLAP Analytics | 7 analytical queries with charts and CSV export |
+
 ## Configuration
 
 ### Environment Variables
@@ -220,6 +317,7 @@ Create a `.env` file based on `.env.example`:
 MYSQL_HOST=localhost
 MYSQL_PORT=3306
 MYSQL_DATABASE=library
+MYSQL_OLAP_DATABASE=library_olap
 MYSQL_USER=root
 MYSQL_PASSWORD=librarypass123
 
@@ -239,13 +337,29 @@ LOG_LEVEL=INFO
 
 ```bash
 # Full sync (clears Neo4j first)
-python -m etl.etl_pipeline
+PYTHONPATH=$(pwd) python -m etl.etl_pipeline
 
 # Incremental update (keeps existing data)
-python -m etl.etl_pipeline --no-clear
+PYTHONPATH=$(pwd) python -m etl.etl_pipeline --no-clear
 
 # Verbose mode
-python -m etl.etl_pipeline --verbose
+PYTHONPATH=$(pwd) python -m etl.etl_pipeline --verbose
+```
+
+### Generating Sample Data
+
+```bash
+# Generate new sample data (optional - data is pre-generated)
+cd scripts
+python generate_sample_data.py
+
+# This creates 02_insert_data.sql with:
+# - 200 members
+# - 100 authors
+# - 500 books
+# - 20 staff
+# - 2000 loans
+# - ~1200 fines
 ```
 
 ### Running Tests
@@ -285,6 +399,18 @@ MATCH (b:Book)-[:BELONGS_TO]->(c:Category)
 RETURN c.name AS category, collect(b.title) AS books
 ```
 
+### OLAP Analytical Queries
+
+The OLAP Analytics view includes these pre-built queries:
+
+1. **Monthly Loan Trends** - Borrowing patterns over time
+2. **Top Borrowed Books** - Most popular titles
+3. **Loans by Category (Weighted)** - Genre analysis with bridge table weighting
+4. **Staff Performance** - Loan processing metrics by staff
+5. **Member Behavior** - Member borrowing patterns and fine history
+6. **Weekend vs Weekday** - Day-of-week analysis
+7. **Year-over-Year** - Annual comparison metrics
+
 ## Troubleshooting
 
 ### Connection Issues
@@ -320,14 +446,20 @@ docker-compose up -d
    - Wait for Neo4j to fully start (~30 seconds)
 
 3. **"No data in graph"**
-   - Run the ETL pipeline: `python -m etl.etl_pipeline`
+   - Run the ETL pipeline: `PYTHONPATH=$(pwd) python -m etl.etl_pipeline`
+   - Or click "Sync Data" in the app sidebar
 
 4. **"Table doesn't exist" errors**
    - MySQL scripts may not have run. Check logs: `docker-compose logs mysql`
-   - Try restarting: `docker-compose down && docker-compose up -d`
+   - Try restarting: `docker-compose down -v && docker-compose up -d`
 
-5. **"Check constraint violated" errors**
-   - Ensure sample data meets all constraints (e.g., fine amounts > 0)
+5. **"Duplicate entry" errors on startup**
+   - Remove old data volumes: `docker-compose down -v`
+   - Ensure only one insert script exists (02_insert_data.sql)
+
+6. **OLAP Analytics shows no data**
+   - The OLAP database populates via `05_olap_etl.sql` on startup
+   - Check logs: `docker-compose logs mysql | grep olap`
 
 ## Development
 
@@ -335,7 +467,8 @@ docker-compose up -d
 
 1. Create a new file in `app/views/`
 2. Implement the `render(neo4j: Neo4jConnector)` function
-3. Add the view to the `VIEWS` dictionary in `app/main.py`
+3. Import in `app/views/__init__.py`
+4. Add the view to the `VIEWS` dictionary in `app/main.py`
 
 ### Extending the ETL
 
@@ -349,14 +482,19 @@ def load_new_entity(self) -> int:
     return len(data)
 ```
 
-## Sample Data
+### Multi-Database MySQL Queries
 
-The project includes sample data representing a small library:
+```python
+from etl.mysql_connector import MySQLConnector
 
-- **Members**: John Smith, Sarah Johnson, Michael Williams, Emily Brown, David Jones, Jessica Davis
-- **Authors**: George Orwell, Jane Austen, Harper Lee, F. Scott Fitzgerald, Ernest Hemingway, Mark Twain, Agatha Christie, Stephen King
-- **Books**: 1984, Pride and Prejudice, To Kill a Mockingbird, The Great Gatsby, The Old Man and the Sea, Tom Sawyer, Murder on the Orient Express, It, Animal Farm, A Farewell to Arms
-- **Categories**: Fiction, Classic, Mystery, Science Fiction, Biography, Horror
+# OLTP database (default)
+with MySQLConnector(database="oltp") as db:
+    members = db.fetch_table("member")
+
+# OLAP database
+with MySQLConnector(database="olap") as db:
+    facts = db.execute_query("SELECT * FROM fact_loan LIMIT 10")
+```
 
 ## License
 
@@ -368,3 +506,4 @@ MIT License
 - [PyVis Documentation](https://pyvis.readthedocs.io/)
 - [Streamlit Documentation](https://docs.streamlit.io/)
 - [Cypher Query Language](https://neo4j.com/docs/cypher-manual/current/)
+- [Faker Library](https://faker.readthedocs.io/)

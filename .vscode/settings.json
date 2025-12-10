@@ -2,15 +2,16 @@
     "python.defaultInterpreterPath": "${workspaceFolder}/library_graph_viz/venv/bin/python",
     "python.terminal.activateEnvironment": true,
     "python.analysis.extraPaths": [
+        "${workspaceFolder}",
         "${workspaceFolder}/library_graph_viz"
     ],
     "python.testing.pytestEnabled": true,
     "python.testing.pytestArgs": [
         "library_graph_viz/tests"
     ],
+    "python.testing.cwd": "${workspaceFolder}/library_graph_viz",
     "files.exclude": {
         "**/__pycache__": true,
         "**/*.pyc": true
     }
 }
-

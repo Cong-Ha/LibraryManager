@@ -38,6 +38,74 @@ NODE_SIZES = {
     "Fine": 15,
 }
 
+# ERD OLTP Schema colors (for normalized tables)
+ERD_OLTP_COLORS = {
+    "member": "#4CAF50",       # Green
+    "author": "#9C27B0",       # Purple
+    "book": "#2196F3",         # Blue
+    "category": "#FF9800",     # Orange
+    "staff": "#795548",        # Brown
+    "loan": "#F44336",         # Red
+    "fine": "#E91E63",         # Pink
+    "book_author": "#607D8B",  # Gray (junction)
+    "book_category": "#607D8B", # Gray (junction)
+}
+
+ERD_OLTP_SHAPES = {
+    "member": "box",
+    "author": "box",
+    "book": "box",
+    "category": "box",
+    "staff": "box",
+    "loan": "box",
+    "fine": "box",
+    "book_author": "diamond",  # Junction tables
+    "book_category": "diamond",
+}
+
+ERD_OLTP_SIZES = {
+    "member": 35,
+    "author": 30,
+    "book": 40,
+    "category": 30,
+    "staff": 30,
+    "loan": 35,
+    "fine": 25,
+    "book_author": 20,
+    "book_category": 20,
+}
+
+# ERD OLAP Star Schema colors
+ERD_OLAP_COLORS = {
+    "fact_loan": "#F44336",           # Red (fact table)
+    "dim_date": "#2196F3",            # Blue
+    "dim_member": "#4CAF50",          # Green
+    "dim_book": "#9C27B0",            # Purple
+    "dim_staff": "#795548",           # Brown
+    "dim_category": "#FF9800",        # Orange
+    "bridge_book_category": "#607D8B", # Gray (bridge)
+}
+
+ERD_OLAP_SHAPES = {
+    "fact_loan": "star",      # Fact table as star
+    "dim_date": "box",
+    "dim_member": "box",
+    "dim_book": "box",
+    "dim_staff": "box",
+    "dim_category": "box",
+    "bridge_book_category": "diamond",
+}
+
+ERD_OLAP_SIZES = {
+    "fact_loan": 60,          # Fact table larger
+    "dim_date": 35,
+    "dim_member": 35,
+    "dim_book": 35,
+    "dim_staff": 35,
+    "dim_category": 35,
+    "bridge_book_category": 25,
+}
+
 
 def create_network(
     height: str = "600px",
@@ -115,12 +183,13 @@ def create_network(
         },
         "interaction": {
             "hover": true,
-            "tooltipDelay": 200,
+            "tooltipDelay": 100,
             "hideEdgesOnDrag": true,
             "navigationButtons": true,
             "keyboard": {
                 "enabled": true
-            }
+            },
+            "multiselect": true
         }
     }
     """)
@@ -238,10 +307,15 @@ def display_in_streamlit(
     Args:
         net: PyVis Network instance.
         height: Height of the component in pixels.
-        key: Optional unique key for the component.
+        key: Optional unique key for the component (used for container).
     """
     html = net.generate_html()
-    components.html(html, height=height, scrolling=True)
+    # Wrap in a container with unique key to help Streamlit track component identity
+    if key:
+        with st.container(key=key):
+            components.html(html, height=height, scrolling=True)
+    else:
+        components.html(html, height=height, scrolling=True)
 
 
 def create_legend() -> str:

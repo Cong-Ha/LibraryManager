@@ -17,6 +17,10 @@ from app.views import (
     staff_activity,
     custom_query,
     analytics,
+    erd_oltp,
+    erd_olap,
+    crud_examples,
+    olap_analytics,
 )
 
 # Configure logging
@@ -59,6 +63,10 @@ VIEWS = {
     "👥 Staff Activity": staff_activity,
     "🔍 Custom Cypher Query": custom_query,
     "📊 Analytics & Recommendations": analytics,
+    "📋 ERD: OLTP Schema": erd_oltp,
+    "⭐ ERD: OLAP Star Schema": erd_olap,
+    "✏️ CRUD Examples": crud_examples,
+    "📈 OLAP Analytics": olap_analytics,
 }
 
 
