@@ -59,8 +59,10 @@ A comprehensive graph visualization and analytics platform for a Library Managem
 | Component | Technology | Purpose |
 |-----------|------------|---------|
 | Graph Database | Neo4j 5.x | Store and query graph relationships |
-| Visualization | PyVis | Interactive network graphs & ERD diagrams |
+| Visualization | PyVis + Custom React Component | Interactive network graphs & ERD diagrams |
 | Front-end | Streamlit | Web application framework |
+| Graph Component | React 18 + TypeScript + Vite | Custom Streamlit component for interactive graphs |
+| Graph Library | vis-network | High-performance network visualization |
 | OLTP Database | MySQL 8.x | Transactional database (normalized) |
 | OLAP Database | MySQL 8.x | Analytical database (star schema) |
 | Data Generation | Faker | Realistic sample data generation |
@@ -70,6 +72,7 @@ A comprehensive graph visualization and analytics platform for a Library Managem
 ## Prerequisites
 
 - Python 3.10 or higher (recommend using [pyenv](https://github.com/pyenv/pyenv))
+- Node.js 18+ and npm (for building the custom graph component)
 - Docker and Docker Compose
 - Git
 
@@ -87,8 +90,14 @@ source venv/bin/activate  # Linux/Mac
 # or
 venv\Scripts\activate     # Windows
 
-# Install dependencies
+# Install Python dependencies
 pip install -r requirements.txt
+
+# Install and build the custom graph component
+cd app/components/streamlit_graph/frontend
+npm install
+npm run build
+cd ../../../..
 
 # Copy environment template
 cp .env.example .env
@@ -179,7 +188,14 @@ library_graph_viz/
 │   ├── main.py                  # Streamlit entry point
 │   ├── components/
 │   │   ├── graph_builder.py     # PyVis graph construction + ERD styles
-│   │   └── sidebar.py           # Sidebar navigation
+│   │   ├── sidebar.py           # Sidebar navigation
+│   │   └── streamlit_graph/     # Custom React graph component
+│   │       ├── __init__.py      # Python wrapper for the component
+│   │       └── frontend/        # React/TypeScript source
+│   │           ├── src/         # React components
+│   │           ├── build/       # Production build output
+│   │           ├── package.json # npm dependencies
+│   │           └── vite.config.ts # Vite build configuration
 │   └── views/
 │       ├── full_network.py      # Full library network view
 │       ├── books_authors.py     # Books & authors view
@@ -461,6 +477,91 @@ docker-compose up -d
    - The OLAP database populates via `05_olap_etl.sql` on startup
    - Check logs: `docker-compose logs mysql | grep olap`
 
+## Custom Graph Component
+
+The project includes a custom Streamlit component built with React and TypeScript for interactive graph visualizations. This provides enhanced interactivity compared to the standard PyVis HTML embed approach.
+
+### Features
+
+- **Interactive Events**: Click, double-click, hover, and multi-select support
+- **Dynamic Physics**: Switch between Barnes-Hut and Force Atlas layouts without rebuilding
+- **Performance**: Uses vis-network for smooth rendering of large graphs
+- **Loading States**: Spinner display during graph stabilization
+
+### Component Architecture
+
+```
+streamlit_graph/
+├── __init__.py              # Python API (streamlit_graph, InteractiveNetwork)
+└── frontend/
+    ├── src/
+    │   ├── index.tsx        # Entry point
+    │   ├── GraphComponent.tsx # Main React component
+    │   ├── types.ts         # TypeScript interfaces
+    │   └── styles.css       # Component styles
+    ├── package.json         # Dependencies (react, vis-network, streamlit-component-lib)
+    ├── tsconfig.json        # TypeScript configuration
+    └── vite.config.ts       # Build configuration
+```
+
+### Usage
+
+```python
+from app.components.streamlit_graph import streamlit_graph, InteractiveNetwork
+
+# Simple usage
+event = streamlit_graph(
+    nodes=[{"id": "1", "label": "Node 1", "type": "book"}],
+    edges=[{"from": "1", "to": "2"}],
+    height=600,
+    layout="barnes_hut"
+)
+
+# Handle events
+if event and event["type"] == "nodeClick":
+    st.write(f"Clicked: {event['nodeData']}")
+
+# Class-based API (drop-in replacement for PyVis)
+net = InteractiveNetwork(height="600px", layout="force_atlas")
+net.add_nodes(nodes_list)
+net.add_edges(edges_list)
+event = net.display(key="my_network")
+```
+
+### Development Mode
+
+For hot-reload during frontend development:
+
+```bash
+# Terminal 1: Start Vite dev server
+cd app/components/streamlit_graph/frontend
+npm run dev
+
+# Terminal 2: Run Streamlit with dev mode enabled
+STREAMLIT_GRAPH_DEV=true PYTHONPATH=$(pwd) streamlit run app/main.py
+```
+
+### Building the Component
+
+```bash
+cd app/components/streamlit_graph/frontend
+npm run build     # Production build
+npm run watch     # Watch mode (rebuilds on changes)
+npm run typecheck # Type checking only
+```
+
+### VS Code Integration
+
+The project includes VS Code tasks for building the component:
+
+- **React: Build Frontend** - Production build (runs before Streamlit launch)
+- **React: Watch (Hot Reload)** - Continuous rebuild on file changes
+- **React: Dev Server** - Vite development server
+
+Launch configurations:
+- **Python: Streamlit App** - Builds frontend, then launches Streamlit
+- **Python: Streamlit App (with Hot Reload)** - Starts watch mode, then launches Streamlit
+
 ## Development
 
 ### Adding New Views
@@ -505,5 +606,8 @@ MIT License
 - [Neo4j Python Driver](https://neo4j.com/docs/python-manual/current/)
 - [PyVis Documentation](https://pyvis.readthedocs.io/)
 - [Streamlit Documentation](https://docs.streamlit.io/)
+- [Streamlit Components](https://docs.streamlit.io/develop/concepts/custom-components)
+- [vis-network Documentation](https://visjs.github.io/vis-network/docs/network/)
+- [Vite](https://vitejs.dev/)
 - [Cypher Query Language](https://neo4j.com/docs/cypher-manual/current/)
 - [Faker Library](https://faker.readthedocs.io/)
