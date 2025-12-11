@@ -201,7 +201,7 @@ def render(neo4j=None) -> None:
 
                                 if results:
                                     df = pd.DataFrame(results)
-                                    st.dataframe(df, use_container_width=True)
+                                    st.dataframe(df, width="stretch")
                                     st.caption(f"Returned {len(results)} rows")
                                 else:
                                     st.info("Query returned no results.")

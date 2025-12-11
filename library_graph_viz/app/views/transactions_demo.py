@@ -280,9 +280,10 @@ WHERE id = {selected_loan['book_id']};"""
     if fine_amount > 0:
         return_sql += f"""
 
--- Step 3: Create fine record
+-- Step 3: Create or update fine record
 INSERT INTO fine (loan_id, amount, issue_date, paid_status)
-VALUES ({selected_loan['loan_id']}, {fine_amount:.2f}, CURDATE(), 'unpaid');"""
+VALUES ({selected_loan['loan_id']}, {fine_amount:.2f}, CURDATE(), 'unpaid')
+ON DUPLICATE KEY UPDATE amount = {fine_amount:.2f}, issue_date = CURDATE();"""
 
     return_sql += "\n\nCOMMIT;"
 
@@ -310,12 +311,13 @@ VALUES ({selected_loan['loan_id']}, {fine_amount:.2f}, CURDATE(), 'unpaid');"""
                     auto_commit=False
                 )
 
-                # Step 3: Create fine if overdue
+                # Step 3: Create or update fine if overdue
                 fine_id = None
                 if fine_amount > 0:
                     db.execute_write(
                         """INSERT INTO fine (loan_id, amount, issue_date, paid_status)
-                           VALUES (%(loan_id)s, %(amount)s, CURDATE(), 'unpaid')""",
+                           VALUES (%(loan_id)s, %(amount)s, CURDATE(), 'unpaid')
+                           ON DUPLICATE KEY UPDATE amount = %(amount)s, issue_date = CURDATE()""",
                         {"loan_id": selected_loan['loan_id'], "amount": fine_amount},
                         auto_commit=False
                     )

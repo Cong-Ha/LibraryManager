@@ -196,7 +196,7 @@ def render_member_connections(neo4j: Neo4jConnector) -> None:
                     "Shared Books": r["shared_count"],
                     "Sample": ", ".join(r["sample_books"][:3]),
                 } for r in results])
-                st.dataframe(df, use_container_width=True)
+                st.dataframe(df, width="stretch")
 
             else:
                 st.info("No connections found. This member may have unique reading tastes!")
@@ -316,7 +316,7 @@ def render_top_performers(neo4j: Neo4jConnector) -> None:
                 "Categories Read": d["category_count"],
                 "Sample Categories": ", ".join(d["categories"]),
             } for d in diverse])
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width="stretch")
 
     except Exception as e:
         st.error(f"Error: {e}")

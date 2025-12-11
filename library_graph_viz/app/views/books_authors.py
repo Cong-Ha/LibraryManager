@@ -123,7 +123,7 @@ def render(neo4j: Neo4jConnector) -> None:
                 "isbn": "ISBN",
             })
             df = df[["Author", "Book Title", "Year", "ISBN"]]
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width="stretch")
 
             # Download button
             csv = df.to_csv(index=False)

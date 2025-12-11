@@ -257,7 +257,7 @@ def render(neo4j=None) -> None:
 
                     # Display data table
                     st.subheader("Results")
-                    st.dataframe(df, use_container_width=True)
+                    st.dataframe(df, width="stretch")
                     st.caption(f"Returned {len(results)} rows")
 
                     # Download button

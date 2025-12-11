@@ -205,7 +205,7 @@ def render(neo4j: Neo4jConnector) -> None:
             df = pd.DataFrame(results)
             df = df[["loan_date", "due_date", "return_date", "book_title", "author_name"]]
             df.columns = ["Loan Date", "Due Date", "Return Date", "Book", "Author"]
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width="stretch")
 
     except Exception as e:
         st.error(f"Error loading data: {e}")

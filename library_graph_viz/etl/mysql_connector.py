@@ -102,6 +102,7 @@ class MySQLConnector:
                 database=db_name,
                 user=settings.mysql_user,
                 password=settings.mysql_password,
+                connection_timeout=10,
             )
         return cls._pools[pool_key]
 
@@ -119,11 +120,29 @@ class MySQLConnector:
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """Exit context manager and close connection."""
-        if self._cursor:
-            self._cursor.close()
-        if self._connection:
-            self._connection.close()
-        logger.debug(f"MySQL connection closed ({self.database})")
+        try:
+            if self._cursor:
+                # Consume any pending results to avoid GeneratorExit errors
+                try:
+                    while self._cursor.nextset():
+                        pass
+                except Exception:
+                    pass  # Ignore errors when consuming pending results
+                self._cursor.close()
+            if self._connection:
+                # Rollback any uncommitted transaction before returning to pool
+                if self._connection.in_transaction:
+                    self._connection.rollback()
+                self._connection.close()
+            logger.debug(f"MySQL connection closed ({self.database})")
+        except Exception as e:
+            logger.warning(f"Error closing connection: {e}")
+
+    @classmethod
+    def reset_pools(cls) -> None:
+        """Reset all connection pools. Use when pool is exhausted or stale."""
+        cls._pools.clear()
+        logger.info("All connection pools have been reset")
 
     def execute_query(
         self, query: str, params: Optional[dict] = None

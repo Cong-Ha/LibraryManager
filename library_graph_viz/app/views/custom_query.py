@@ -137,7 +137,7 @@ def render(neo4j: Neo4jConnector) -> None:
 
                     # Display as DataFrame
                     df = pd.DataFrame(results)
-                    st.dataframe(df, use_container_width=True)
+                    st.dataframe(df, width="stretch")
 
                     # Download options
                     col1, col2 = st.columns(2)
