@@ -148,10 +148,11 @@ def create_network(
             )
         else:  # force_atlas
             net.force_atlas_2based(
-                gravity=-50,
-                central_gravity=0.01,
-                spring_length=100,
-                spring_strength=0.08,
+                gravity=-80,
+                central_gravity=0.005,
+                spring_length=150,
+                spring_strength=0.04,
+                damping=0.4,
             )
     else:
         net.toggle_physics(False)
@@ -310,12 +311,7 @@ def display_in_streamlit(
         key: Optional unique key for the component (used for container).
     """
     html = net.generate_html()
-    # Wrap in a container with unique key to help Streamlit track component identity
-    if key:
-        with st.container(key=key):
-            components.html(html, height=height, scrolling=True)
-    else:
-        components.html(html, height=height, scrolling=True)
+    components.html(html, height=height, scrolling=True)
 
 
 def create_legend() -> str:
