@@ -6,6 +6,25 @@ from etl.mysql_connector import MySQLConnector
 from config.settings import get_settings
 
 
+@st.cache_data(ttl=300)
+def get_olap_table_counts() -> dict:
+    """Fetch OLAP table counts with caching (5 minute TTL)."""
+    settings = get_settings()
+    with MySQLConnector(settings, database="olap") as db:
+        counts = {}
+        for table in ["dim_date", "dim_member", "dim_book", "dim_staff", "dim_category", "fact_loan"]:
+            counts[table] = db.get_table_count(table)
+        return counts
+
+
+@st.cache_data(ttl=60)
+def run_olap_query(query_key: str, sql: str) -> list:
+    """Execute OLAP query with caching (1 minute TTL)."""
+    settings = get_settings()
+    with MySQLConnector(settings, database="olap") as db:
+        return db.execute_query(sql)
+
+
 # OLAP Analytical Queries from Week 4
 OLAP_QUERIES = {
     "monthly_trends": {
@@ -143,6 +162,10 @@ ORDER BY d.year;""",
 
 def render(neo4j=None) -> None:
     """Render the OLAP analytics view."""
+    # Initialize session state for query results
+    if "olap_query_results" not in st.session_state:
+        st.session_state.olap_query_results = {}
+
     st.header("OLAP Analytics - Star Schema Queries")
     st.markdown("""
     This view demonstrates **analytical queries** against the dimensional model (star schema).
@@ -154,12 +177,7 @@ def render(neo4j=None) -> None:
 
     # Database connection status
     try:
-        settings = get_settings()
-        with MySQLConnector(settings, database="olap") as db:
-            # Get dimension counts for overview
-            counts = {}
-            for table in ["dim_date", "dim_member", "dim_book", "dim_staff", "dim_category", "fact_loan"]:
-                counts[table] = db.get_table_count(table)
+        counts = get_olap_table_counts()
 
         st.success(f"Connected to OLAP database | Fact records: {counts.get('fact_loan', 0):,}")
 
@@ -197,49 +215,62 @@ def render(neo4j=None) -> None:
 
             # Execute query button
             if st.button(f"Run Analysis", key=f"run_{query_key}"):
-                try:
-                    with MySQLConnector(settings, database="olap") as db:
-                        results = db.execute_query(query_info["sql"])
+                with st.spinner("Running query..."):
+                    try:
+                        results = run_olap_query(query_key, query_info["sql"])
+                        st.session_state.olap_query_results[query_key] = {
+                            "results": results,
+                            "error": None
+                        }
+                    except Exception as e:
+                        st.session_state.olap_query_results[query_key] = {
+                            "results": None,
+                            "error": str(e)
+                        }
 
-                    if results:
-                        df = pd.DataFrame(results)
+            # Display results from session state
+            if query_key in st.session_state.olap_query_results:
+                stored = st.session_state.olap_query_results[query_key]
 
-                        # Display chart if applicable
-                        if query_info.get("chart_type") and len(df) > 0:
-                            st.subheader("Visualization")
+                if stored["error"]:
+                    st.error(f"Query failed: {stored['error']}")
+                elif stored["results"]:
+                    results = stored["results"]
+                    df = pd.DataFrame(results)
 
-                            chart_x = query_info["chart_x"]
-                            chart_y = query_info["chart_y"]
+                    # Display chart if applicable
+                    if query_info.get("chart_type") and len(df) > 0:
+                        st.subheader("Visualization")
 
-                            # Prepare chart data
-                            if chart_x in df.columns and chart_y in df.columns:
-                                chart_df = df[[chart_x, chart_y]].copy()
-                                chart_df = chart_df.set_index(chart_x)
+                        chart_x = query_info["chart_x"]
+                        chart_y = query_info["chart_y"]
 
-                                if query_info["chart_type"] == "bar":
-                                    st.bar_chart(chart_df)
-                                elif query_info["chart_type"] == "line":
-                                    st.line_chart(chart_df)
+                        # Prepare chart data
+                        if chart_x in df.columns and chart_y in df.columns:
+                            chart_df = df[[chart_x, chart_y]].copy()
+                            chart_df = chart_df.set_index(chart_x)
 
-                        # Display data table
-                        st.subheader("Results")
-                        st.dataframe(df, use_container_width=True)
-                        st.caption(f"Returned {len(results)} rows")
+                            if query_info["chart_type"] == "bar":
+                                st.bar_chart(chart_df)
+                            elif query_info["chart_type"] == "line":
+                                st.line_chart(chart_df)
 
-                        # Download button
-                        csv = df.to_csv(index=False)
-                        st.download_button(
-                            label="Download CSV",
-                            data=csv,
-                            file_name=f"{query_key}_results.csv",
-                            mime="text/csv",
-                            key=f"download_{query_key}",
-                        )
-                    else:
-                        st.info("Query returned no results. The OLAP database may need to be populated.")
+                    # Display data table
+                    st.subheader("Results")
+                    st.dataframe(df, use_container_width=True)
+                    st.caption(f"Returned {len(results)} rows")
 
-                except Exception as e:
-                    st.error(f"Query failed: {str(e)}")
+                    # Download button
+                    csv = df.to_csv(index=False)
+                    st.download_button(
+                        label="Download CSV",
+                        data=csv,
+                        file_name=f"{query_key}_results.csv",
+                        mime="text/csv",
+                        key=f"download_{query_key}",
+                    )
+                else:
+                    st.info("Query returned no results. The OLAP database may need to be populated.")
 
     # Summary section
     st.divider()

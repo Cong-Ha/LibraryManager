@@ -246,3 +246,93 @@ class MySQLConnector:
         query = f"SELECT COUNT(*) as count FROM {table_name}"
         result = self.execute_query(query)
         return result[0]["count"] if result else 0
+
+    def begin_transaction(self) -> None:
+        """
+        Start a new database transaction.
+
+        After calling this method, all subsequent queries will be part of
+        the transaction until commit() or rollback() is called.
+
+        Raises:
+            RuntimeError: If called outside context manager.
+        """
+        if not self._connection:
+            raise RuntimeError("MySQLConnector must be used as a context manager")
+        self._connection.start_transaction()
+        logger.debug("Transaction started")
+
+    def commit(self) -> None:
+        """
+        Commit the current transaction.
+
+        Makes all changes since begin_transaction() permanent.
+
+        Raises:
+            RuntimeError: If called outside context manager.
+        """
+        if not self._connection:
+            raise RuntimeError("MySQLConnector must be used as a context manager")
+        self._connection.commit()
+        logger.debug("Transaction committed")
+
+    def rollback(self) -> None:
+        """
+        Rollback the current transaction.
+
+        Undoes all changes since begin_transaction().
+
+        Raises:
+            RuntimeError: If called outside context manager.
+        """
+        if not self._connection:
+            raise RuntimeError("MySQLConnector must be used as a context manager")
+        self._connection.rollback()
+        logger.debug("Transaction rolled back")
+
+    def execute_write(
+        self, query: str, params: Optional[dict] = None, auto_commit: bool = True
+    ) -> int:
+        """
+        Execute an INSERT, UPDATE, or DELETE query.
+
+        Args:
+            query: SQL query string (INSERT, UPDATE, or DELETE).
+            params: Query parameters for parameterized queries.
+            auto_commit: If True, commit immediately. If False, caller must
+                        call commit() or rollback() manually.
+
+        Returns:
+            Number of rows affected by the query.
+
+        Raises:
+            RuntimeError: If called outside context manager.
+            mysql.connector.Error: If query execution fails.
+        """
+        if not self._cursor or not self._connection:
+            raise RuntimeError("MySQLConnector must be used as a context manager")
+
+        try:
+            self._cursor.execute(query, params or {})
+            affected_rows = self._cursor.rowcount
+            if auto_commit:
+                self._connection.commit()
+            logger.debug(f"Write query executed, {affected_rows} rows affected")
+            return affected_rows
+        except mysql.connector.Error as e:
+            logger.error(f"Write query execution failed: {e}")
+            raise
+
+    def get_last_insert_id(self) -> int:
+        """
+        Get the ID of the last inserted row.
+
+        Returns:
+            The auto-increment ID of the last INSERT operation.
+
+        Raises:
+            RuntimeError: If called outside context manager.
+        """
+        if not self._cursor:
+            raise RuntimeError("MySQLConnector must be used as a context manager")
+        return self._cursor.lastrowid

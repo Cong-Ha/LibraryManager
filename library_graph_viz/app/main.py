@@ -21,6 +21,7 @@ from app.views import (
     erd_olap,
     crud_examples,
     olap_analytics,
+    transactions_demo,
 )
 
 # Configure logging
@@ -67,6 +68,7 @@ VIEWS = {
     "⭐ ERD: OLAP Star Schema": erd_olap,
     "✏️ CRUD Examples": crud_examples,
     "📈 OLAP Analytics": olap_analytics,
+    "💳 Transactions Demo": transactions_demo,
 }
 
 

@@ -11,6 +11,7 @@ from . import erd_oltp
 from . import erd_olap
 from . import crud_examples
 from . import olap_analytics
+from . import transactions_demo
 
 __all__ = [
     "full_network",
@@ -24,4 +25,5 @@ __all__ = [
     "erd_olap",
     "crud_examples",
     "olap_analytics",
+    "transactions_demo",
 ]
