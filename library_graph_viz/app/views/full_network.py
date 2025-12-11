@@ -2,14 +2,7 @@
 
 import streamlit as st
 from etl.neo4j_connector import Neo4jConnector
-from app.components.graph_builder import (
-    create_network,
-    add_nodes,
-    add_edges,
-    display_in_streamlit,
-    display_legend,
-    NODE_COLORS,
-)
+from app.components.streamlit_graph import display_interactive_graph, NODE_COLORS
 
 # Define node type categories
 SMALL_TYPES = {"Category": 15, "Staff": 20, "Author": 100}  # Show ALL of these
@@ -293,11 +286,6 @@ def render(neo4j: Neo4jConnector) -> None:
             for r in rels_result
         ]
 
-        # Create and display the network
-        net = create_network(height="650px", layout=layout)
-        add_nodes(net, nodes)
-        add_edges(net, edges)
-
         # Display statistics
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Nodes Displayed", len(nodes))
@@ -312,8 +300,23 @@ def render(neo4j: Neo4jConnector) -> None:
         col3.metric("Node Types", len(type_counts))
         col4.metric("Most Common", max(type_counts, key=type_counts.get) if type_counts else "N/A")
 
-        # Display the graph
-        display_in_streamlit(net, height=670)
+        # Display the interactive graph
+        event = display_interactive_graph(
+            nodes=nodes,
+            edges=edges,
+            height=670,
+            layout=layout,
+            key="full_network_graph",
+        )
+
+        # Handle graph events
+        if event:
+            if event["type"] == "nodeClick":
+                node_data = event.get("nodeData", {})
+                with st.sidebar:
+                    st.markdown("### Selected Node")
+                    st.write(f"**{node_data.get('label', 'Unknown')}**")
+                    st.write(f"Type: {node_data.get('type', 'Unknown')}")
 
         # Show breakdown
         with st.expander("📊 Node Type Breakdown"):

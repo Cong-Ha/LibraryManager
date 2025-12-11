@@ -1,11 +1,8 @@
 """ERD Visualization for OLAP (Star Schema)."""
 
 import streamlit as st
-from app.components.graph_builder import (
-    create_network,
-    add_nodes,
-    add_edges,
-    display_in_streamlit,
+from app.components.streamlit_graph import (
+    display_interactive_graph,
     ERD_OLAP_COLORS,
     ERD_OLAP_SHAPES,
     ERD_OLAP_SIZES,
@@ -183,7 +180,7 @@ def render(neo4j=None) -> None:
     for table_name, table_info in OLAP_TABLES.items():
         nodes.append({
             "id": table_name,
-            "label": table_name.upper().replace("_", "\n"),
+            "label": table_name.upper().replace("_", " "),
             "type": table_name,
             "title": build_tooltip(table_name, table_info),
             "size": ERD_OLAP_SIZES.get(table_name, 30),
@@ -201,28 +198,40 @@ def render(neo4j=None) -> None:
         }
         edges.append(edge_style)
 
-    # Create network
-    net = create_network(
-        height="700px",
-        directed=True,
-        physics_enabled=True,
+    # Display the interactive graph with OLAP styling
+    event = display_interactive_graph(
+        nodes=nodes,
+        edges=edges,
+        height=720,
         layout="barnes_hut",
-    )
-
-    # Add nodes with OLAP styling
-    add_nodes(
-        net,
-        nodes,
+        directed=True,
+        key="erd_olap_network",
         colors=ERD_OLAP_COLORS,
         shapes=ERD_OLAP_SHAPES,
         sizes=ERD_OLAP_SIZES,
     )
 
-    # Add edges
-    add_edges(net, edges)
-
-    # Display
-    display_in_streamlit(net, height=720, key="erd_olap_network")
+    # Handle graph events
+    if event:
+        if event["type"] == "nodeClick":
+            node_data = event.get("nodeData", {})
+            table_name = node_data.get("id", "").lower()
+            if table_name in OLAP_TABLES:
+                with st.sidebar:
+                    table_info = OLAP_TABLES[table_name]
+                    st.markdown(f"### [{table_info['type']}] {table_name.upper()}")
+                    st.caption(table_info["description"])
+                    for col_def in table_info["columns"]:
+                        if "PK" in col_def:
+                            st.markdown(f":green[{col_def}]")
+                        elif "FK" in col_def:
+                            st.markdown(f":blue[{col_def}]")
+                        elif "(measure)" in col_def:
+                            st.markdown(f":red[{col_def}]")
+                        elif "(denorm)" in col_def:
+                            st.markdown(f":orange[{col_def}]")
+                        else:
+                            st.markdown(col_def)
 
     # Schema explanation
     st.divider()

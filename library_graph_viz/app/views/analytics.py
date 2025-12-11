@@ -3,12 +3,7 @@
 import streamlit as st
 import pandas as pd
 from etl.neo4j_connector import Neo4jConnector
-from app.components.graph_builder import (
-    create_network,
-    add_nodes,
-    add_edges,
-    display_in_streamlit,
-)
+from app.components.streamlit_graph import display_interactive_graph
 
 
 def render(neo4j: Neo4jConnector) -> None:
@@ -185,10 +180,13 @@ def render_member_connections(neo4j: Neo4jConnector) -> None:
                         "title": f"Shared {r['shared_count']} books: {', '.join(r['sample_books'][:3])}",
                     })
 
-                net = create_network(height="400px", layout="force_atlas")
-                add_nodes(net, nodes)
-                add_edges(net, edges)
-                display_in_streamlit(net, height=420)
+                display_interactive_graph(
+                    nodes=nodes,
+                    edges=edges,
+                    height=420,
+                    layout="force_atlas",
+                    key="member_connections_graph",
+                )
 
                 # Table
                 df = pd.DataFrame([{

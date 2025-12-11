@@ -3,12 +3,7 @@
 import streamlit as st
 import pandas as pd
 from etl.neo4j_connector import Neo4jConnector
-from app.components.graph_builder import (
-    create_network,
-    add_nodes,
-    add_edges,
-    display_in_streamlit,
-)
+from app.components.streamlit_graph import display_interactive_graph
 
 
 def render(neo4j: Neo4jConnector) -> None:
@@ -133,11 +128,6 @@ def render(neo4j: Neo4jConnector) -> None:
                         })
                         seen_nodes.add(edge_id)
 
-        # Create network
-        net = create_network(height="550px", layout="force_atlas")
-        add_nodes(net, nodes)
-        add_edges(net, edges)
-
         # Statistics
         unique_authors = len([n for n in nodes if n["type"] == "Author"])
         col1, col2, col3 = st.columns(3)
@@ -145,7 +135,23 @@ def render(neo4j: Neo4jConnector) -> None:
         col2.metric("Authors", unique_authors)
         col3.metric("Total Connections", len(edges))
 
-        display_in_streamlit(net, height=570)
+        # Display the interactive graph
+        event = display_interactive_graph(
+            nodes=nodes,
+            edges=edges,
+            height=570,
+            layout="force_atlas",
+            key="category_explorer_graph",
+        )
+
+        # Handle graph events
+        if event:
+            if event["type"] == "nodeClick":
+                node_data = event.get("nodeData", {})
+                with st.sidebar:
+                    st.markdown("### Selected Node")
+                    st.write(f"**{node_data.get('label', 'Unknown')}**")
+                    st.write(f"Type: {node_data.get('type', 'Unknown')}")
 
         # Data table
         with st.expander("📋 Books in Category"):

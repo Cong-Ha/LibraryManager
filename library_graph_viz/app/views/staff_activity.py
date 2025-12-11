@@ -3,12 +3,7 @@
 import streamlit as st
 import pandas as pd
 from etl.neo4j_connector import Neo4jConnector
-from app.components.graph_builder import (
-    create_network,
-    add_nodes,
-    add_edges,
-    display_in_streamlit,
-)
+from app.components.streamlit_graph import display_interactive_graph
 
 
 def render(neo4j: Neo4jConnector) -> None:
@@ -106,11 +101,6 @@ def render(neo4j: Neo4jConnector) -> None:
                         "title": "Processed loan for this book",
                     })
 
-        # Create network
-        net = create_network(height="550px", layout="force_atlas")
-        add_nodes(net, nodes)
-        add_edges(net, edges)
-
         # Statistics
         total_loans = sum(r["loan_count"] for r in results)
         avg_loans = total_loans / len(results) if results else 0
@@ -121,7 +111,23 @@ def render(neo4j: Neo4jConnector) -> None:
         col3.metric("Avg Loans/Staff", f"{avg_loans:.1f}")
         col4.metric("Most Active", results[0]["staff_name"] if results else "N/A")
 
-        display_in_streamlit(net, height=570)
+        # Display the interactive graph
+        event = display_interactive_graph(
+            nodes=nodes,
+            edges=edges,
+            height=570,
+            layout="force_atlas",
+            key="staff_activity_graph",
+        )
+
+        # Handle graph events
+        if event:
+            if event["type"] == "nodeClick":
+                node_data = event.get("nodeData", {})
+                with st.sidebar:
+                    st.markdown("### Selected Node")
+                    st.write(f"**{node_data.get('label', 'Unknown')}**")
+                    st.write(f"Type: {node_data.get('type', 'Unknown')}")
 
         # Staff leaderboard
         with st.expander("📊 Staff Leaderboard"):

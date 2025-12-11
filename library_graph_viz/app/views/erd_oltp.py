@@ -1,11 +1,8 @@
 """ERD Visualization for OLTP (Normalized) Schema."""
 
 import streamlit as st
-from app.components.graph_builder import (
-    create_network,
-    add_nodes,
-    add_edges,
-    display_in_streamlit,
+from app.components.streamlit_graph import (
+    display_interactive_graph,
     ERD_OLTP_COLORS,
     ERD_OLTP_SHAPES,
     ERD_OLTP_SIZES,
@@ -184,28 +181,35 @@ def render(neo4j=None) -> None:
             "color": "#888888",
         })
 
-    # Create network
-    net = create_network(
-        height="700px",
-        directed=True,
-        physics_enabled=True,
+    # Display the interactive graph with ERD styling
+    event = display_interactive_graph(
+        nodes=nodes,
+        edges=edges,
+        height=720,
         layout="barnes_hut",
-    )
-
-    # Add nodes with ERD styling
-    add_nodes(
-        net,
-        nodes,
+        directed=True,
+        key="erd_oltp_network",
         colors=ERD_OLTP_COLORS,
         shapes=ERD_OLTP_SHAPES,
         sizes=ERD_OLTP_SIZES,
     )
 
-    # Add edges
-    add_edges(net, edges)
-
-    # Display
-    display_in_streamlit(net, height=720, key="erd_oltp_network")
+    # Handle graph events
+    if event:
+        if event["type"] == "nodeClick":
+            node_data = event.get("nodeData", {})
+            table_name = node_data.get("id", "").lower()
+            if table_name in OLTP_TABLES:
+                with st.sidebar:
+                    st.markdown(f"### {table_name.upper()}")
+                    st.caption(OLTP_TABLES[table_name]["description"])
+                    for col_def in OLTP_TABLES[table_name]["columns"]:
+                        if "PK" in col_def:
+                            st.markdown(f":green[{col_def}]")
+                        elif "FK" in col_def:
+                            st.markdown(f":blue[{col_def}]")
+                        else:
+                            st.markdown(col_def)
 
     # Table details section
     st.divider()

@@ -3,12 +3,7 @@
 import streamlit as st
 import pandas as pd
 from etl.neo4j_connector import Neo4jConnector
-from app.components.graph_builder import (
-    create_network,
-    add_nodes,
-    add_edges,
-    display_in_streamlit,
-)
+from app.components.streamlit_graph import display_interactive_graph
 
 
 def render(neo4j: Neo4jConnector) -> None:
@@ -181,11 +176,6 @@ def render(neo4j: Neo4jConnector) -> None:
                     })
                     seen_nodes.add(author_edge_id)
 
-        # Create and display network
-        net = create_network(height="550px", layout="force_atlas")
-        add_nodes(net, nodes)
-        add_edges(net, edges)
-
         # Statistics
         unique_books = len(set(r["book_id"] for r in results))
         active_loans = len([r for r in results if not r["return_date"]])
@@ -198,7 +188,23 @@ def render(neo4j: Neo4jConnector) -> None:
             unique_authors = len(set(r["author_id"] for r in results if r["author_id"]))
             col4.metric("Authors Read", unique_authors)
 
-        display_in_streamlit(net, height=570)
+        # Display the interactive graph
+        event = display_interactive_graph(
+            nodes=nodes,
+            edges=edges,
+            height=570,
+            layout="force_atlas",
+            key="member_history_graph",
+        )
+
+        # Handle graph events
+        if event:
+            if event["type"] == "nodeClick":
+                node_data = event.get("nodeData", {})
+                with st.sidebar:
+                    st.markdown("### Selected Node")
+                    st.write(f"**{node_data.get('label', 'Unknown')}**")
+                    st.write(f"Type: {node_data.get('type', 'Unknown')}")
 
         # Data table
         with st.expander("📋 Loan History Table"):

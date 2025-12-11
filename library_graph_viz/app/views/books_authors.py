@@ -3,11 +3,8 @@
 import streamlit as st
 import pandas as pd
 from etl.neo4j_connector import Neo4jConnector
-from app.components.graph_builder import (
-    create_network,
-    add_nodes,
-    add_edges,
-    display_in_streamlit,
+from app.components.streamlit_graph import (
+    display_interactive_graph,
     NODE_COLORS,
 )
 
@@ -98,11 +95,8 @@ def render(neo4j: Neo4jConnector) -> None:
                 "title": "WROTE",
             })
 
-        # Create the network
-        net = create_network(height="600px", layout=layout)
-        add_nodes(net, list(authors.values()))
-        add_nodes(net, list(books.values()))
-        add_edges(net, edges)
+        # Combine all nodes
+        all_nodes = list(authors.values()) + list(books.values())
 
         # Display statistics
         col1, col2, col3 = st.columns(3)
@@ -110,8 +104,23 @@ def render(neo4j: Neo4jConnector) -> None:
         col2.metric("Books", len(books))
         col3.metric("Relationships", len(edges))
 
-        # Display the graph
-        display_in_streamlit(net, height=620)
+        # Display the interactive graph
+        event = display_interactive_graph(
+            nodes=all_nodes,
+            edges=edges,
+            height=620,
+            layout=layout,
+            key="books_authors_graph",
+        )
+
+        # Handle graph events
+        if event:
+            if event["type"] == "nodeClick":
+                node_data = event.get("nodeData", {})
+                with st.sidebar:
+                    st.markdown("### Selected Node")
+                    st.write(f"**{node_data.get('label', 'Unknown')}**")
+                    st.write(f"Type: {node_data.get('type', 'Unknown')}")
 
         # Data table
         with st.expander("📋 View Data Table"):

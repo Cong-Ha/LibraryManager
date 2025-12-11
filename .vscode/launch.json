@@ -17,7 +17,27 @@
                 "PYTHONPATH": "${workspaceFolder}"
             },
             "python": "${workspaceFolder}/library_graph_viz/venv/bin/python",
-            "cwd": "${workspaceFolder}/library_graph_viz"
+            "cwd": "${workspaceFolder}/library_graph_viz",
+            "preLaunchTask": "React: Build Frontend"
+        },
+        {
+            "name": "Python: Streamlit App (with Hot Reload)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            "args": [
+                "run",
+                "app/main.py",
+                "--server.headless=true"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "python": "${workspaceFolder}/library_graph_viz/venv/bin/python",
+            "cwd": "${workspaceFolder}/library_graph_viz",
+            "preLaunchTask": "React: Watch (Hot Reload)"
         },
         {
             "name": "Python: ETL Pipeline",

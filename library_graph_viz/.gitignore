@@ -86,6 +86,7 @@ dmypy.json
 
 # PyVis generated HTML files
 *.html
+!app/components/**/frontend/index.html
 
 # Docker volumes (if mounted locally)
 neo4j_data/
